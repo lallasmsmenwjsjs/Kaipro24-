@@ -1,0 +1,184 @@
+import os
+import shutil
+import sys
+import tkinter as tk
+from tkinter import filedialog
+import msvcrt
+import ctypes
+
+def print_ascii():
+    ascii_art = r"""
+
+   _____ ____  _   _ ______ _____ _____   __  __          _   _          _____ ______ _____  
+  / ____/ __ \| \ | |  ____|_   _/ ____| |  \/  |   /\   | \ | |   /\   / ____|  ____|  __ \ 
+ | |   | |  | |  \| | |__    | || |  __  | \  / |  /  \  |  \| |  /  \ | |  __| |__  | |__) |
+ | |   | |  | | . ` |  __|   | || | |_ | | |\/| | / /\ \ | . ` | / /\ \| | |_ |  __| |  _  / 
+ | |___| |__| | |\  | |     _| || |__| | | |  | |/ ____ \| |\  |/ ____ \ |__| | |____| | \ \ 
+  \_____\____/|_| \_|_|    |_____\_____| |_|  |_/_/    \_\_| \_/_/    \_\_____|______|_|  \_\
+                                                                                              
+                                                                                              
+
+        """
+    print(ascii_art)
+
+def load_path():
+    try:
+        with open("path.txt", "r") as f:
+            return f.read().strip()
+    except:
+        return None
+
+def save_path(path):
+    with open("path.txt", "w") as f:
+        f.write(path)
+
+def get_file():
+    root = tk.Tk()
+    root.withdraw()
+    file_path = filedialog.askopenfilename(
+        title="Select Config File",
+        filetypes=[("JSON files", "*.json"), ("All files", "*.*")]
+    )
+    root.destroy()
+    
+    hwnd = ctypes.windll.kernel32.GetConsoleWindow()
+    ctypes.windll.user32.SetForegroundWindow(hwnd)
+    
+    return file_path if os.path.isfile(file_path) else None
+
+def get_folder():
+    saved = load_path()
+    if saved and os.path.exists(saved):
+        return saved
+    
+    root = tk.Tk()
+    root.withdraw()
+    folder = filedialog.askdirectory(title="Select Executor Folder")
+    root.destroy()
+    
+    hwnd = ctypes.windll.kernel32.GetConsoleWindow()
+    ctypes.windll.user32.SetForegroundWindow(hwnd)
+    
+    if folder and os.path.isdir(folder):
+        folder_name = os.path.basename(folder)
+        if folder_name not in ["ozashub-rewrite", "settings"]:
+            save_path(folder)
+            return folder
+        else:
+            print("Please select the main executor folder, not ozashub-rewrite or settings.")
+            return None
+    return None
+
+def find_settings(executor_path):
+    workspace = os.path.join(executor_path, "workspace")
+    ozashub = os.path.join(workspace, "ozashub-rewrite")
+    settings = os.path.join(ozashub, "settings")
+    
+    if os.path.exists(settings):
+        return settings
+    
+    if not os.path.exists(ozashub):
+        print("Folder not found! Please run ozashub to create the folders automatically then come back")
+        print("Press any key to continue...")
+        msvcrt.getch()
+        sys.exit()
+    
+    return None
+
+def copy_file(config_file, settings_folder):
+    name = os.path.basename(config_file)
+    dest = os.path.join(settings_folder, name)
+    
+    if os.path.exists(dest):
+        print("File already present")
+        print("1 - Rename")
+        print("2 - Quit")
+        choice = input("Choice: ").strip()
+        if choice == "1":
+            base, ext = os.path.splitext(name)
+            counter = 1
+            while True:
+                new_name = f"{base}_{counter}{ext}"
+                new_dest = os.path.join(settings_folder, new_name)
+                if not os.path.exists(new_dest):
+                    shutil.copy2(config_file, new_dest)
+                    print(f"Success! Copied to: {new_dest}")
+                    return True
+                counter += 1
+        else:
+            print("Cancelled.")
+            return False
+    
+    shutil.copy2(config_file, dest)
+    print(f"Success! Copied to: {dest}")
+    return True
+
+def open_folder():
+    folder = get_folder()
+    if not folder:
+        return
+    
+    settings = find_settings(folder)
+    if settings:
+        os.startfile(settings)
+        print(f"Opened: {settings}")
+
+def change_path():
+    root = tk.Tk()
+    root.withdraw()
+    folder = filedialog.askdirectory(title="Select New Executor Folder")
+    root.destroy()
+    
+    hwnd = ctypes.windll.kernel32.GetConsoleWindow()
+    ctypes.windll.user32.SetForegroundWindow(hwnd)
+    
+    if folder and os.path.isdir(folder):
+        save_path(folder)
+        print("Path updated.")
+
+def import_config():
+    file = get_file()
+    if not file:
+        return
+    
+    folder = get_folder()
+    if not folder:
+        return
+    
+    settings = find_settings(folder)
+    if settings:
+        result = copy_file(file, settings)
+        if result:
+            print("Import completed successfully.")
+        else:
+            print("Import cancelled.")
+
+def main():
+    while True:
+        print_ascii()
+        print("\nWelcome to Config Manager")
+        print("1 - Import")
+        print("2 - Show Config Folder")
+        print("3 - Change Path")
+        print("4 - Exit")
+        
+        choice = input("\nChoice (1-4): ").strip()
+        
+        if choice == "1":
+            import_config()
+        elif choice == "2":
+            open_folder()
+        elif choice == "3":
+            change_path()
+        elif choice == "4":
+            print("Goodbye!")
+            break
+        else:
+            print("Invalid choice.")
+        
+        print("\nPress any key to continue...")
+        msvcrt.getch()
+        os.system('cls' if os.name == 'nt' else 'clear')
+
+if __name__ == "__main__":
+    main() 

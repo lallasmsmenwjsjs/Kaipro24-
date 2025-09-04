@@ -1,0 +1,17 @@
+-- Omega Transcendent AI – Game Reality Manipulator (Concept)
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local TweenService = game:GetService("TweenService")
+local RunService = game:GetService("RunService")
+local HttpService = game:GetService("HttpService")
+
+local player = Players.LocalPlayer
+local character = player.Character or player.CharacterAdded:Wait()
+local hrp = character:WaitForChild("HumanoidRootPart")
+local humanoid = character:WaitForChild("Humanoid")
+
+-- Config Omega AI
+local pickUpRadius = 120
+local skillCooldown = 0.2
+local damageAmount = 9999999
+local learningRate =

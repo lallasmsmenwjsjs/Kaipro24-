@@ -1,0 +1,41 @@
+loadstring(game:HttpGet("https://raw.githubusercontent.com/shlexware/Orion/main/source"))()
+local p=game.Players.LocalPlayer vu=game:GetService("VirtualUser")
+local st={farm=false,boss=false,fruit=false,chest=false,pvp=false,spd=0.15}
+
+local function near(lst)
+ local c=p.Character if not c or not c:FindFirstChild("HumanoidRootPart")then return end
+ local pos,m=c.HumanoidRootPart.Position,1e9 local t
+ for _,v in pairs(lst())do if v:FindFirstChild("HumanoidRootPart")and v:FindFirstChild("Humanoid")and v.Humanoid.Health>0 then
+  local d=(v.HumanoidRootPart.Position-pos).Magnitude if d<m then m=d t=v end end end return t
+end
+
+local en=function()return workspace.Enemies:GetChildren()end
+local all=function()return workspace:GetChildren()end
+
+spawn(function()while task.wait(st.spd)do local c=p.Character
+ if st.farm then local e=near(en) if e and c then c.HumanoidRootPart.CFrame=e.HumanoidRootPart.CFrame*CFrame.new(0,0,-3) vu:ClickButton1(Vector2.new())end end
+ if st.boss then for _,v in pairs(en())do if v.Name:lower():find("boss")then c.HumanoidRootPart.CFrame=v.HumanoidRootPart.CFrame*CFrame.new(0,0,-4) vu:ClickButton1(Vector2.new())end end end
+ if st.fruit then for _,v in pairs(all())do if(v:IsA("Tool")or v:IsA("Model"))and v.Name:lower():find("fruit")then c.HumanoidRootPart.CFrame=v:GetPivot()end end end
+ if st.chest then for _,v in pairs(all())do if v:IsA("Model")and v.Name:lower():find("chest")then c.HumanoidRootPart.CFrame=v:GetPivot()end end end
+ if st.pvp then local pos,m=c.HumanoidRootPart.Position,1e9 local t for _,pl in pairs(game.Players:GetPlayers())do
+  if pl~=p and pl.Character and pl.Character:FindFirstChild("HumanoidRootPart")and pl.Character.Humanoid.Health>0 then
+   local d=(pl.Character.HumanoidRootPart.Position-pos).Magnitude if d<m then m=d t=pl end end end
+  if t then c.HumanoidRootPart.CFrame=t.Character.HumanoidRootPart.CFrame*CFrame.new(0,0,-3) vu:ClickButton1(Vector2.new())end end
+end end)
+
+local o=OrionLib local w=o:MakeWindow({Name="⚡",HidePremium=false,SaveConfig=true,ConfigFolder="fm"})
+
+w:MakeTab({Name="🌀"}):AddToggle({Name="🔥",Callback=function(v)st.farm=v end})
+:AddSlider({Name="⚙️",Min=0.05,Max=1,Default=0.15,Increment=0.05,Callback=function(v)st.spd=v end})
+
+w:MakeTab({Name="👑"}):AddToggle({Name="💀",Callback=function(v)st.boss=v end})
+w:MakeTab({Name="🍏"}):AddToggle({Name="🌌",Callback=function(v)st.fruit=v end})
+w:MakeTab({Name="💎"}):AddToggle({Name="📦",Callback=function(v)st.chest=v end})
+
+local tp=w:MakeTab({Name="🌍"})
+tp:AddButton({Name="🏝️",Callback=function()p.Character.HumanoidRootPart.CFrame=CFrame.new(1000,50,1000)end})
+:AddButton({Name="⛰️",Callback=function()p.Character.HumanoidRootPart.CFrame=CFrame.new(2000,50,2000)end})
+:AddButton({Name="🏯",Callback=function()p.Character.HumanoidRootPart.CFrame=CFrame.new(3000,50,3000)end})
+
+w:MakeTab({Name="⚔️"}):AddToggle({Name="🩸",Callback=function(v)st.pvp=v end})
+o:Init()
